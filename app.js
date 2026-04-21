@@ -791,11 +791,26 @@ function initEvents() {
   });
 }
 
-function init() {
+function forceStartAtTop() {
   if ("scrollRestoration" in history) {
     history.scrollRestoration = "manual";
   }
-  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+
+  // Prevent reopening directly at a section anchor (e.g., #analysis).
+  if (window.location.hash) {
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
+
+  const jumpTop = () => window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  jumpTop();
+  requestAnimationFrame(jumpTop);
+  setTimeout(jumpTop, 0);
+  setTimeout(jumpTop, 250);
+}
+
+function init() {
+  forceStartAtTop();
+  window.addEventListener("pageshow", forceStartAtTop);
   initFadeSections();
   initScrollProgress();
   initEvents();
