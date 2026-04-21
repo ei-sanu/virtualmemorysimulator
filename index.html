@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#101725" />
+  <title>Virtual Memory Optimization Simulator</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="shortcut icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
+  <link rel="manifest" href="site.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <div class="loader-wrap" id="loader">
+    <div class="loader-box">
+      <div class="loader-spinner"></div>
+      <h2>Virtual Memory Optimization Simulator</h2>
+      <p>Preparing cyber-grade dashboard...</p>
+    </div>
+  </div>
+
+  <header class="navbar">
+    <div class="nav-inner">
+      <div class="logo">VM Simulator</div>
+      <nav class="nav-links">
+        <a href="#about">About</a>
+        <a href="#simulator">Simulator</a>
+        <a href="#workload">Workload</a>
+        <a href="#analysis">Analysis</a>
+        <a href="#comparison">Comparison</a>
+        <a href="#export">Export</a>
+      </nav>
+      <button class="btn-run-nav ripple-btn" id="runFromNav">Run Simulation</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="about" class="hero fade-section">
+      <article class="glass-card">
+        <h1>Virtual Memory Optimization Simulator</h1>
+        <p>
+          A modern, browser-native demand paging simulator with FIFO, LRU, Optimal, and LFU support.
+          Analyze page hits, faults, fragmentation, frame replacement behavior, workload patterns, and
+          algorithm performance in a premium cybersecurity-inspired dashboard.
+        </p>
+        <div class="hero-actions">
+          <button class="btn btn-primary ripple-btn" id="heroRun">Run Simulation</button>
+          <button class="btn btn-secondary ripple-btn" id="heroExplore">Explore Features</button>
+        </div>
+      </article>
+      <aside class="glass-card">
+        <h2 class="section-title">Live Snapshot</h2>
+        <p class="section-sub">Key counters update while simulation runs.</p>
+        <div class="metrics-grid">
+          <div class="metric"><div class="label">Total Requests</div><div class="value" id="heroRequests">0</div></div>
+          <div class="metric"><div class="label">Page Faults</div><div class="value" id="heroFaults">0</div></div>
+          <div class="metric"><div class="label">Hits</div><div class="value" id="heroHits">0</div></div>
+          <div class="metric"><div class="label">Fault Rate</div><div class="value" id="heroFaultRate">0%</div></div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="simulator" class="glass-card fade-section">
+      <h2 class="section-title">Simulator Controls</h2>
+      <p class="section-sub">Configure frames, reference string, algorithm, and execution speed.</p>
+      <div class="controls-grid">
+        <div class="control">
+          <label for="framesInput">Number of Frames</label>
+          <input id="framesInput" type="number" min="1" max="50" value="3" />
+        </div>
+        <div class="control full">
+          <label for="pagesInput">Page Reference String (space/comma separated)</label>
+          <input id="pagesInput" type="text" value="7 0 1 2 0 3 0 4 2 3 0 3 2" />
+        </div>
+        <div class="control">
+          <label for="algorithmSelect">Algorithm</label>
+          <select id="algorithmSelect">
+            <option>FIFO</option>
+            <option>LRU</option>
+            <option>Optimal</option>
+            <option>LFU</option>
+          </select>
+        </div>
+        <div class="control">
+          <label for="speedSelect">Playback Speed</label>
+          <select id="speedSelect">
+            <option>Slow</option>
+            <option selected>Normal</option>
+            <option>Fast</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-sm btn-accent ripple-btn" id="runAnimatedBtn">Run Animated</button>
+        <button class="btn btn-sm btn-light ripple-btn" id="instantViewBtn">Instant View</button>
+        <button class="btn btn-sm btn-blue ripple-btn" id="compareAllBtn">Compare All</button>
+        <button class="btn btn-sm btn-light ripple-btn" id="generateWorkloadFromSimulatorBtn">Generate Workload</button>
+        <button class="btn btn-sm btn-danger ripple-btn" id="clearBtn">Clear</button>
+      </div>
+    </section>
+
+    <section id="workload" class="glass-card fade-section">
+      <h2 class="section-title">Workload Generator</h2>
+      <p class="section-sub">Generate realistic request patterns for testing paging behavior.</p>
+      <div class="controls-grid">
+        <div class="control">
+          <label for="workloadType">Workload Type</label>
+          <select id="workloadType">
+            <option>Custom</option>
+            <option>Random</option>
+            <option>Locality of Reference</option>
+            <option>Looping Pattern</option>
+            <option>Burst</option>
+          </select>
+        </div>
+        <div class="control">
+          <label for="maxPageInput">Max Page Number</label>
+          <input id="maxPageInput" type="number" min="1" value="10" />
+        </div>
+        <div class="control">
+          <label for="requestCountInput">Number of Requests</label>
+          <input id="requestCountInput" type="number" min="1" value="20" />
+        </div>
+        <div class="control">
+          <label>&nbsp;</label>
+          <button class="btn btn-sm btn-accent ripple-btn" id="generateWorkloadBtn">Generate Workload</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="split fade-section">
+      <article class="glass-card">
+        <h2 class="section-title">Simulation Timeline</h2>
+        <p class="section-sub">Step-wise execution with hit/fault highlighting.</p>
+        <div class="timeline-wrap">
+          <table id="timelineTable">
+            <thead>
+              <tr>
+                <th>Step</th>
+                <th>Page Request</th>
+                <th>Result</th>
+                <th>Frames</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="glass-card">
+        <h2 class="section-title">Frame Visualization</h2>
+        <p class="section-sub">Frames animate on insertions and replacements.</p>
+        <div class="frames-grid" id="framesGrid"></div>
+      </article>
+    </section>
+
+    <section class="split fade-section">
+      <article class="glass-card">
+        <h2 class="section-title">Live Metrics</h2>
+        <div class="metrics-grid">
+          <div class="metric"><div class="label">Total Requests</div><div class="value" id="metricRequests">0</div></div>
+          <div class="metric"><div class="label">Page Faults</div><div class="value" id="metricFaults">0</div></div>
+          <div class="metric"><div class="label">Hits</div><div class="value" id="metricHits">0</div></div>
+          <div class="metric"><div class="label">Fault Rate</div><div class="value" id="metricFaultRate">0%</div></div>
+        </div>
+      </article>
+
+      <article class="glass-card" id="analysis">
+        <h2 class="section-title">Fragmentation Analysis</h2>
+        <p class="section-sub">Internal and external fragmentation tracked in real time.</p>
+        <div class="frag-grid">
+          <div class="mini-stat"><div class="label">Internal Fragmentation</div><div class="value" id="internalFrag">0 KB</div></div>
+          <div class="mini-stat"><div class="label">External Fragmentation</div><div class="value" id="externalFrag">0 KB</div></div>
+          <div class="mini-stat"><div class="label">Memory Holes</div><div class="value" id="holesCount">0</div></div>
+        </div>
+        <div class="memory-bar-wrap" title="Used memory (blue) and free holes (red)">
+          <div class="bar-used" id="usedBar"></div>
+          <div class="bar-free" id="freeBar"></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="split fade-section">
+      <article class="glass-card">
+        <h2 class="section-title">Memory Utilization</h2>
+        <p class="section-sub">Efficiency of frame occupancy.</p>
+        <div class="util-grid">
+          <div class="mini-stat"><div class="label">Used Memory</div><div class="value" id="usedMemory">0 KB</div></div>
+          <div class="mini-stat"><div class="label">Free Memory</div><div class="value" id="freeMemory">0 KB</div></div>
+          <div class="mini-stat"><div class="label">Utilization</div><div class="value" id="utilPercent">0%</div></div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="utilProgress"></div></div>
+      </article>
+
+      <article class="glass-card" id="comparison">
+        <h2 class="section-title">Algorithm Comparison</h2>
+        <p class="section-sub">Fault/hit performance for FIFO, LRU, and Optimal.</p>
+        <div class="timeline-wrap">
+          <table id="comparisonTable">
+            <thead>
+              <tr>
+                <th>Algorithm</th>
+                <th>Faults</th>
+                <th>Hits</th>
+                <th>Fault Rate</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section class="glass-card fade-section">
+      <h2 class="section-title">Performance Graphs</h2>
+      <p class="section-sub">Chart.js visualization for faults, hits, and fault-rate trends.</p>
+      <div class="charts-grid">
+        <div class="chart-card"><canvas id="faultChart"></canvas></div>
+        <div class="chart-card"><canvas id="hitChart"></canvas></div>
+        <div class="chart-card"><canvas id="rateChart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="glass-card fade-section">
+      <h2 class="section-title">Analysis Panel</h2>
+      <p class="section-sub">Interpretation and algorithm behavior summary.</p>
+      <div class="analysis-panel" id="analysisPanel">Run a simulation to generate analysis.</div>
+    </section>
+
+    <section class="glass-card fade-section" id="export">
+      <h2 class="section-title">Export</h2>
+      <p class="section-sub">Download complete report data in JSON or PDF.</p>
+      <div class="btn-row">
+        <button class="btn btn-sm btn-accent ripple-btn" id="downloadJsonBtn">Download JSON</button>
+        <button class="btn btn-sm btn-blue ripple-btn" id="downloadPdfBtn">Download PDF</button>
+      </div>
+    </section>
+
+    <p class="footer-note">Web version of Virtual Memory Optimization Simulator • Demand Paging • Fragmentation • Performance Analysis</p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
