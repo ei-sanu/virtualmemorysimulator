@@ -196,80 +196,6 @@ def open_file(filepath):
 
 
 # ============ GUI Application ============
-        raise ValueError("Frames must be greater than zero")
-    if not pages:
-        raise ValueError("Page sequence cannot be empty")
-
-    memory = []
-    queue = deque()
-    recent = {}
-    faults = 0
-    steps = []
-
-    for index, page in enumerate(pages):
-        fault = page not in memory
-        action = "Hit"
-
-        if algorithm == "FIFO":
-            if fault:
-                faults += 1
-                if len(memory) < frames:
-                    memory.append(page)
-                    queue.append(page)
-                    action = f"Loaded {page}"
-                else:
-                    removed = queue.popleft()
-                    memory[memory.index(removed)] = page
-                    queue.append(page)
-                    action = f"Replaced {removed}"
-        elif algorithm == "LRU":
-            if fault:
-                faults += 1
-                if len(memory) < frames:
-                    memory.append(page)
-                    action = f"Loaded {page}"
-                else:
-                    lru_page = min(memory, key=lambda value: recent.get(value, -1))
-                    memory[memory.index(lru_page)] = page
-                    action = f"Replaced {lru_page}"
-            recent[page] = index
-        elif algorithm == "OPTIMAL":
-            if fault:
-                faults += 1
-                if len(memory) < frames:
-                    memory.append(page)
-                    action = f"Loaded {page}"
-                else:
-                    future = pages[index + 1 :]
-                    replace = None
-                    farthest = -1
-                    for candidate in memory:
-                        if candidate not in future:
-                            replace = candidate
-                            break
-                        future_index = future.index(candidate)
-                        if future_index > farthest:
-                            farthest = future_index
-                            replace = candidate
-                    memory[memory.index(replace)] = page
-                    action = f"Replaced {replace}"
-        else:
-            raise ValueError("Invalid algorithm")
-
-        steps.append(SimulationStep(index + 1, page, memory.copy(), fault, action))
-
-    hits = len(pages) - faults
-    return SimulationResult(
-        algorithm=algorithm,
-        pages=pages,
-        frames=frames,
-        faults=faults,
-        hits=hits,
-        fault_rate=faults / len(pages),
-        steps=steps,
-    )
-
-
 class VirtualMemorySimulatorApp:
     def __init__(self, root):
         self.root = root
@@ -372,17 +298,26 @@ class VirtualMemorySimulatorApp:
         self.canvas.bind_all("<Button-4>", self._on_mousewheel)
         self.canvas.bind_all("<Button-5>", self._on_mousewheel)
 
+        # Two-column content area for balanced visibility
         self.scrollable_frame.grid_columnconfigure(0, weight=1)
+        self.scrollable_frame.grid_columnconfigure(1, weight=1)
+        self.scrollable_frame.grid_rowconfigure(0, weight=1)
 
-        # Build UI sections in scrollable area
+        self.left_col = tk.Frame(self.scrollable_frame, bg=BACKGROUND)
+        self.left_col.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+
+        self.right_col = tk.Frame(self.scrollable_frame, bg=BACKGROUND)
+        self.right_col.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
+
+        # Build UI sections in two columns
         self._build_controls_card()
         self._build_workload_card()
         self._build_metrics_card()
         self._build_fragmentation_card()
         self._build_utilization_card()
         self._build_memory_card()
-        self._build_comparison_card()
         self._build_timeline_card()
+        self._build_comparison_card()
         self._build_summary_card()
         self._build_graphs_card()
         self._build_export_card()
@@ -402,7 +337,7 @@ class VirtualMemorySimulatorApp:
             self.canvas.yview_scroll(-1, "units")
 
     def _build_controls_card(self):
-        card = tk.Frame(self.scrollable_frame, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
+        card = tk.Frame(self.left_col, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
         card.pack(fill="x", pady=(0, 14))
         card.grid_columnconfigure((0, 1, 2, 3), weight=1)
         tk.Label(card, text="Simulation Controls", bg=CARD, fg=TEXT, font=("Avenir Next", 14, "bold")).grid(row=0, column=0, sticky="w", columnspan=4)
@@ -445,7 +380,7 @@ class VirtualMemorySimulatorApp:
             card.grid_columnconfigure(col, weight=1)
 
     def _build_metrics_card(self):
-        card = tk.Frame(self.scrollable_frame, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
+        card = tk.Frame(self.left_col, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
         card.pack(fill="x", pady=(0, 14))
         card.grid_columnconfigure((0, 1, 2, 3), weight=1)
         tk.Label(card, text="Live Metrics", bg=CARD, fg=TEXT, font=("Avenir Next", 14, "bold")).grid(row=0, column=0, sticky="w", columnspan=4)
@@ -468,7 +403,7 @@ class VirtualMemorySimulatorApp:
 
     def _build_workload_card(self):
         """Add workload generator UI"""
-        card = tk.Frame(self.scrollable_frame, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
+        card = tk.Frame(self.left_col, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
         card.pack(fill="x", pady=(0, 14))
         card.grid_columnconfigure((0, 1, 2, 3), weight=1)
 
@@ -498,7 +433,7 @@ class VirtualMemorySimulatorApp:
 
     def _build_fragmentation_card(self):
         """Add fragmentation analysis panel"""
-        card = tk.Frame(self.scrollable_frame, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
+        card = tk.Frame(self.left_col, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
         card.pack(fill="x", pady=(0, 14))
         card.grid_columnconfigure((0, 1, 2), weight=1)
 
@@ -522,7 +457,7 @@ class VirtualMemorySimulatorApp:
 
     def _build_utilization_card(self):
         """Add memory utilization metrics"""
-        card = tk.Frame(self.scrollable_frame, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
+        card = tk.Frame(self.left_col, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
         card.pack(fill="x", pady=(0, 14))
         card.grid_columnconfigure(0, weight=1)
 
@@ -547,7 +482,7 @@ class VirtualMemorySimulatorApp:
         self.memory_free_label.grid(row=0, column=1, sticky="e")
 
     def _build_memory_card(self):
-        card = tk.Frame(self.scrollable_frame, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
+        card = tk.Frame(self.left_col, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
         card.pack(fill="x", pady=(0, 14))
         card.grid_rowconfigure(1, weight=1)
         card.grid_columnconfigure(0, weight=1)
@@ -566,7 +501,7 @@ class VirtualMemorySimulatorApp:
 
     def _build_comparison_card(self):
         """Add algorithm comparison panel"""
-        card = tk.Frame(self.scrollable_frame, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
+        card = tk.Frame(self.right_col, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
         card.pack(fill="x", pady=(0, 14))
         card.grid_columnconfigure(0, weight=1)
         card.grid_rowconfigure(1, weight=1)
@@ -593,7 +528,7 @@ class VirtualMemorySimulatorApp:
         self.comparison_tree.grid(row=1, column=0, sticky="nsew", pady=(14, 0))
 
     def _build_timeline_card(self):
-        card = tk.Frame(self.scrollable_frame, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
+        card = tk.Frame(self.right_col, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
         card.pack(fill="x", pady=(0, 14))
         card.grid_rowconfigure(1, weight=1)
         card.grid_columnconfigure(0, weight=1)
@@ -621,7 +556,7 @@ class VirtualMemorySimulatorApp:
         timeline_scroll.grid(row=0, column=1, sticky="ns")
 
     def _build_summary_card(self):
-        card = tk.Frame(self.scrollable_frame, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
+        card = tk.Frame(self.right_col, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
         card.pack(fill="x", pady=(0, 14))
         card.grid_rowconfigure(1, weight=1)
         card.grid_columnconfigure(0, weight=1)
@@ -633,7 +568,7 @@ class VirtualMemorySimulatorApp:
 
     def _build_graphs_card(self):
         """Add performance dashboard with graphs"""
-        card = tk.Frame(self.scrollable_frame, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
+        card = tk.Frame(self.right_col, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
         card.pack(fill="x", pady=(0, 14))
         card.grid_columnconfigure(0, weight=1)
 
@@ -652,7 +587,7 @@ class VirtualMemorySimulatorApp:
 
     def _build_export_card(self):
         """Add export/report feature"""
-        card = tk.Frame(self.scrollable_frame, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
+        card = tk.Frame(self.right_col, bg=CARD, highlightbackground=GRID, highlightthickness=1, padx=18, pady=18)
         card.pack(fill="x", pady=(0, 14))
         card.grid_columnconfigure((0, 1, 2), weight=1)
 
